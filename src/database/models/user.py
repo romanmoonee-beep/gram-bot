@@ -134,6 +134,13 @@ class User(Base):
         foreign_keys="Task.author_id",
         lazy="selectin"
     )
+    settings: Mapped[Optional[UserSettings]] = relationship(
+        "UserSettings",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
     
     # Составные индексы для оптимизации запросов
     __table_args__ = (
@@ -250,3 +257,11 @@ class User(Base):
             return new_level
         
         return None
+        
+
+    async def get_settings(self) -> "UserSettings":
+        """Получить настройки пользователя"""
+        if not self.settings:
+            from app.database.models.user_settings import UserSettings
+            self.settings = UserSettings(user_id=self.telegram_id)
+        return self.settings
